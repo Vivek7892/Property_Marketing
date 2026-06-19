@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #f8f9fa;
+  color: #212529;
+}
+
+/* Property Card Hover */
+.property-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.property-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+
+/* Category Card Hover */
+.category-card {
+  transition: transform 0.15s ease;
+}
+.category-card:hover {
+  transform: translateY(-3px);
+}
+
+/* Search Bar */
+.search-bar {
+  border: 1px solid rgba(13,110,253,0.15);
+}
+
+/* Navbar */
+.navbar {
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+
+/* Pagination */
+.page-link { color: #0d6efd; }
+.page-item.active .page-link { background-color: #0d6efd; border-color: #0d6efd; }
+
+/* Chat */
+.chat-bubble-mine { background: #0d6efd; color: white; border-radius: 18px 18px 4px 18px; }
+.chat-bubble-other { background: white; border: 1px solid #dee2e6; border-radius: 18px 18px 18px 4px; }
