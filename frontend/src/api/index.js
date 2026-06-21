@@ -4,6 +4,7 @@ export const authAPI = {
   register: (data) => api.post('/auth/register/', data),
   verifyEmail: (data) => api.post('/auth/verify-email/', data),
   login: (data) => api.post('/auth/login/', data),
+  googleLogin: (credential) => api.post('/auth/google/', { credential }),
   logout: (refresh) => api.post('/auth/logout/', { refresh }),
   forgotPassword: (email) => api.post('/auth/forgot-password/', { email }),
   resetPassword: (data) => api.post('/auth/reset-password/', data),
@@ -34,6 +35,14 @@ export const propertyAPI = {
     headers: { 'Content-Type': 'multipart/form-data' },
   }),
   deleteImage: (imgId) => api.delete(`/properties/images/${imgId}/delete/`),
+  uploadImage: (file, folder = 'property_hub/properties') => {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('folder', folder);
+    return api.post('/properties/upload/', fd, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 export const inquiryAPI = {

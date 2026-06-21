@@ -2,7 +2,9 @@ from rest_framework import viewsets, generics, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
+import cloudinary.uploader
 from .models import Property, PropertyImage, Favorite
 from .serializers import PropertySerializer, PropertyListSerializer, FavoriteSerializer, PropertyImageSerializer
 from .filters import PropertyFilter
@@ -137,3 +139,43 @@ class AdminPropertyViewSet(viewsets.ModelViewSet):
         prop.status = 'rejected'
         prop.save()
         return Response({'message': 'Property rejected.'})
+
+
+class CloudinaryUploadView(APIView):
+    """Signed upload endpoint — receives file, uploads to Cloudinary, returns secure URL."""
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        file = request.FILES.get('file')
+        folder = request.data.get('folder', 'property_hub/properties')
+
+        if not file:
+            return Response({'error': 'No file provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate file type
+        allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg']
+        if file.content_type not in allowed:
+            return Response({'error': 'Only JPEG, PNG, and WebP images allowed.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Validate file size (max 10MB)
+        if file.size > 10 * 1024 * 1024:
+            return Response({'error': 'File size must be under 10MB.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            result = cloudinary.uploader.upload(
+                file,
+                folder=folder,
+                transformation=[
+                    {'quality': 'auto', 'fetch_format': 'auto'},
+                ],
+                resource_type='image',
+            )
+            return Response({
+                'url': result['secure_url'],
+                'public_id': result['public_id'],
+                'width': result.get('width'),
+                'height': result.get('height'),
+            })
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

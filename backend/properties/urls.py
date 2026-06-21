@@ -11,4 +11,5 @@ urlpatterns = [
     path('images/<int:pk>/delete/', views.PropertyImageDeleteView.as_view()),
     path('favorites/', views.FavoriteListView.as_view()),
     path('<uuid:pk>/favorite/', views.ToggleFavoriteView.as_view()),
+    path('upload/', views.CloudinaryUploadView.as_view()),
 ]

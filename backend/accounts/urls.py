@@ -13,4 +13,5 @@ urlpatterns = [
     path('profile/', views.ProfileView.as_view()),
     path('change-password/', views.ChangePasswordView.as_view()),
     path('deactivate/', views.DeactivateAccountView.as_view()),
+    path('google/', views.GoogleAuthView.as_view()),
 ]

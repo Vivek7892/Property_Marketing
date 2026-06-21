@@ -21,11 +21,23 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    profile_photo_url = serializers.URLField(write_only=True, required=False)
+
     class Meta:
         model = User
         fields = ['id', 'email', 'full_name', 'mobile', 'city', 'state',
-                  'locality', 'bio', 'profile_photo', 'user_type', 'is_verified', 'created_at']
+                  'locality', 'bio', 'profile_photo', 'profile_photo_url',
+                  'user_type', 'is_verified', 'created_at']
         read_only_fields = ['id', 'email', 'is_verified', 'created_at']
+
+    def update(self, instance, validated_data):
+        photo_url = validated_data.pop('profile_photo_url', None)
+        if photo_url:
+            instance.profile_photo = photo_url
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 class ChangePasswordSerializer(serializers.Serializer):

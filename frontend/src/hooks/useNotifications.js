@@ -3,7 +3,7 @@ import { notificationAPI } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 export function useNotifications() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
   const refresh = useCallback(() => {
@@ -14,10 +14,11 @@ export function useNotifications() {
   }, [user]);
 
   useEffect(() => {
+    if (loading || !user) return;
     refresh();
     const interval = setInterval(refresh, 30000);
     return () => clearInterval(interval);
-  }, [refresh]);
+  }, [refresh, loading, user]);
 
   return { unreadCount, refresh };
 }

@@ -10,73 +10,66 @@ export default function PropertyFilters() {
     setParams(next);
   };
 
+  const hasFilters = ['category', 'property_type', 'min_price', 'max_price', 'min_bedrooms', 'furnished_status'].some(k => params.get(k));
+
   return (
-    <div className="card border-0 shadow-sm p-3">
-      <h6 className="fw-semibold mb-3">Filters</h6>
-
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Category</label>
-        <select className="form-select form-select-sm" value={params.get('category') || ''} onChange={(e) => update('category', e.target.value)}>
-          <option value="">All</option>
-          <option value="sale">Sale</option>
-          <option value="rent">Rent</option>
-          <option value="lease">Lease</option>
-        </select>
+    <div className="lph-card p-5 space-y-5">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900">Filters</h3>
+        {hasFilters && (
+          <button onClick={() => setParams({})} className="text-xs text-blue-600 font-medium hover:text-blue-700 transition-colors">
+            Clear all
+          </button>
+        )}
       </div>
 
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Property Type</label>
-        <select className="form-select form-select-sm" value={params.get('property_type') || ''} onChange={(e) => update('property_type', e.target.value)}>
-          <option value="">All Types</option>
-          {['house','apartment','villa','plot','shop','office','commercial','warehouse'].map(t => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-          ))}
-        </select>
-      </div>
+      {[
+        {
+          key: 'category', label: 'Category',
+          options: [['', 'All'], ['sale', 'Buy'], ['rent', 'Rent'], ['lease', 'Lease']],
+        },
+        {
+          key: 'property_type', label: 'Property Type',
+          options: [['', 'All Types'], ['house', 'House'], ['shop', 'Shop'], ['site', 'Site / Plot']],
+        },
+        {
+          key: 'min_bedrooms', label: 'Min Bedrooms (House)',
+          options: [['', 'Any'], ...['1', '2', '3', '4', '5'].map(n => [n, `${n}+`])],
+        },
+        {
+          key: 'furnished_status', label: 'Furnishing (House)',
+          options: [['', 'Any'], ['furnished', 'Furnished'], ['semi', 'Semi-Furnished'], ['unfurnished', 'Unfurnished']],
+        },
+        {
+          key: 'ordering', label: 'Sort By',
+          options: [['-created_at', 'Newest First'], ['created_at', 'Oldest First'], ['price', 'Price: Low to High'], ['-price', 'Price: High to Low']],
+        },
+      ].map(({ key, label, options }) => (
+        <div key={key}>
+          <label className="lph-label">{label}</label>
+          <select
+            className="lph-select"
+            value={params.get(key) || ''}
+            onChange={(e) => update(key, e.target.value)}
+          >
+            {options.map(([val, text]) => (
+              <option key={val} value={val}>{text}</option>
+            ))}
+          </select>
+        </div>
+      ))}
 
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Min Price (₹)</label>
-        <input type="number" className="form-control form-control-sm" placeholder="Min"
-          value={params.get('min_price') || ''} onChange={(e) => update('min_price', e.target.value)} />
+      <div>
+        <label className="lph-label">Price Range (₹)</label>
+        <div className="flex gap-2">
+          <input type="number" className="lph-input" placeholder="Min"
+            value={params.get('min_price') || ''}
+            onChange={(e) => update('min_price', e.target.value)} />
+          <input type="number" className="lph-input" placeholder="Max"
+            value={params.get('max_price') || ''}
+            onChange={(e) => update('max_price', e.target.value)} />
+        </div>
       </div>
-
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Max Price (₹)</label>
-        <input type="number" className="form-control form-control-sm" placeholder="Max"
-          value={params.get('max_price') || ''} onChange={(e) => update('max_price', e.target.value)} />
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Min Bedrooms</label>
-        <select className="form-select form-select-sm" value={params.get('min_bedrooms') || ''} onChange={(e) => update('min_bedrooms', e.target.value)}>
-          <option value="">Any</option>
-          {[1,2,3,4,5].map(n => <option key={n} value={n}>{n}+</option>)}
-        </select>
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Furnished Status</label>
-        <select className="form-select form-select-sm" value={params.get('furnished_status') || ''} onChange={(e) => update('furnished_status', e.target.value)}>
-          <option value="">Any</option>
-          <option value="furnished">Furnished</option>
-          <option value="semi">Semi-Furnished</option>
-          <option value="unfurnished">Unfurnished</option>
-        </select>
-      </div>
-
-      <div className="mb-3">
-        <label className="form-label small fw-medium">Sort By</label>
-        <select className="form-select form-select-sm" value={params.get('ordering') || ''} onChange={(e) => update('ordering', e.target.value)}>
-          <option value="-created_at">Newest First</option>
-          <option value="created_at">Oldest First</option>
-          <option value="price">Price: Low to High</option>
-          <option value="-price">Price: High to Low</option>
-        </select>
-      </div>
-
-      <button className="btn btn-outline-secondary btn-sm" onClick={() => setParams({})}>
-        Clear Filters
-      </button>
     </div>
   );
 }

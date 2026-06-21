@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { FiMail, FiLock, FiHome } from 'react-icons/fi';
+import GoogleAuthButton from '../components/common/GoogleAuthButton';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -24,37 +26,79 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-vh-100 d-flex align-items-center bg-light">
-      <div className="container">
-        <div className="row justify-content-center">
-          <div className="col-md-5">
-            <div className="card border-0 shadow-sm p-4">
-              <h4 className="fw-bold text-center mb-1">Welcome Back</h4>
-              <p className="text-muted text-center small mb-4">Sign in to Local Property Hub</p>
-              <form onSubmit={handleSubmit}>
-                <div className="mb-3">
-                  <label className="form-label fw-medium">Email</label>
-                  <input type="email" className="form-control" required
-                    value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-                </div>
-                <div className="mb-3">
-                  <label className="form-label fw-medium">Password</label>
-                  <input type="password" className="form-control" required
-                    value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-                </div>
-                <div className="d-flex justify-content-end mb-3">
-                  <Link to="/forgot-password" className="small text-primary">Forgot Password?</Link>
-                </div>
-                <button className="btn btn-primary w-100" type="submit" disabled={loading}>
-                  {loading ? <span className="spinner-border spinner-border-sm me-2" /> : null}
-                  Sign In
-                </button>
-              </form>
-              <p className="text-center mt-3 small">
-                Don't have an account? <Link to="/register" className="text-primary fw-medium">Register</Link>
-              </p>
-            </div>
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="flex items-center justify-center gap-2 mb-8">
+          <div className="w-9 h-9 bg-gray-900 rounded-xl flex items-center justify-center">
+            <FiHome size={18} className="text-white" />
           </div>
+          <span className="text-base font-bold text-gray-900 tracking-tight">Local Property Hub</span>
+        </div>
+
+        <div className="lph-card p-8">
+          <h1 className="text-xl font-bold text-gray-900 mb-1">Welcome back</h1>
+          <p className="text-sm text-gray-400 mb-7">Sign in to your account</p>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="lph-label">Email Address</label>
+              <div className="relative">
+                <FiMail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="email"
+                  className="lph-input pl-10"
+                  placeholder="you@example.com"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="lph-label mb-0">Password</label>
+                <Link to="/forgot-password" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <FiLock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="password"
+                  className="lph-input pl-10"
+                  placeholder="••••••••"
+                  required
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <button type="submit" disabled={loading} className="btn-primary w-full py-3 justify-center mt-2">
+              {loading
+                ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                : null}
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-gray-100" />
+            <span className="text-xs text-gray-400 font-medium">or</span>
+            <div className="flex-1 h-px bg-gray-100" />
+          </div>
+
+          <GoogleAuthButton label="Sign in with Google" />
+
+          <p className="text-center text-sm text-gray-400 mt-6">
+            Don't have an account?{' '}
+            <Link to="/register" className="text-gray-900 font-semibold hover:text-blue-600 transition-colors">
+              Register
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import random
+import requests as http_requests
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
@@ -151,3 +152,60 @@ class DeactivateAccountView(APIView):
         request.user.is_active = False
         request.user.save()
         return Response({'message': 'Account deactivated.'})
+
+
+class GoogleAuthView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        # Frontend sends Google access_token as 'credential'
+        access_token = request.data.get('credential')
+        if not access_token:
+            return Response({'error': 'Google token required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            resp = http_requests.get(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=10
+            )
+            if resp.status_code != 200:
+                return Response(
+                    {'error': 'Invalid or expired Google token.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            id_info = resp.json()
+        except Exception as e:
+            return Response({'error': f'Google verification failed: {str(e)}'}, status=status.HTTP_400_BAD_REQUEST)
+
+        email = id_info.get('email')
+        full_name = id_info.get('name', '')
+
+        if not email:
+            return Response({'error': 'Email not provided by Google.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not id_info.get('email_verified', False):
+            return Response({'error': 'Google email is not verified.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                'full_name': full_name,
+                'is_verified': True,
+                'user_type': 'buyer',
+            }
+        )
+
+        if created:
+            user.set_unusable_password()
+            user.save()
+        elif full_name and user.full_name != full_name:
+            user.full_name = full_name
+            user.save(update_fields=['full_name'])
+
+        refresh = RefreshToken.for_user(user)
+        return Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data,
+        })

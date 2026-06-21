@@ -23,18 +23,38 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        if hasattr(self, 'room_group_name'):
+            await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        message = await self.save_message(data['message'])
+        user = self.scope['user']
+
+        # Handle typing indicator — broadcast without saving
+        if data.get('type') == 'typing':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'typing_indicator',
+                    'sender_id': str(user.id),
+                }
+            )
+            return
+
+        # Handle chat message
+        message_text = data.get('message', '').strip()
+        if not message_text:
+            return
+
+        message = await self.save_message(message_text)
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': data['message'],
-                'sender_id': str(self.scope['user'].id),
-                'sender_name': self.scope['user'].full_name,
+                'message': message_text,
+                'sender_id': str(user.id),
+                'sender_name': user.full_name,
+                'sender_type': user.user_type,
                 'message_id': message.id,
                 'created_at': message.created_at.isoformat(),
             }
@@ -42,6 +62,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps(event))
+
+    async def typing_indicator(self, event):
+        await self.send(text_data=json.dumps({
+            'type': 'typing',
+            'sender_id': event['sender_id'],
+        }))
 
     @database_sync_to_async
     def get_room(self):
@@ -52,6 +78,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, content):
-        room = ChatRoom.objects.get(id=self.room_id)
-        room.save(update_fields=['updated_at'])
-        return Message.objects.create(room=room, sender=self.scope['user'], content=content)
+        from django.utils import timezone
+        ChatRoom.objects.filter(id=self.room_id).update(updated_at=timezone.now())
+        return Message.objects.create(
+            room_id=self.room_id,
+            sender=self.scope['user'],
+            content=content
+        )

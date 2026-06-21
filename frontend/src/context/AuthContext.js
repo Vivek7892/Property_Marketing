@@ -13,7 +13,11 @@ export function AuthProvider({ children }) {
     if (!token) { setLoading(false); return; }
     try {
       const decoded = jwtDecode(token);
-      if (decoded.exp * 1000 < Date.now()) throw new Error('expired');
+      if (decoded.exp * 1000 < Date.now()) {
+        localStorage.clear();
+        setLoading(false);
+        return;
+      }
       const { data } = await authAPI.getProfile();
       setUser(data);
     } catch {
